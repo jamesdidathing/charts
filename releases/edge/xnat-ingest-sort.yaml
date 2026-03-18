@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sort
+  namespace: ais-edge
+spec:
+  containers:
+  - name: xnat-ingest-sort
+    image: ghcr.io/australian-imaging-service/xnat-ingest:0.8.3
+    imagePullPolicy: IfNotPresent
+    env:
+    - name: XINGEST_DATATYPES
+      value: medimage/dicom-series
+      # add k-space and msi(?) MIME types for Cima X
+    - name: XINGEST_DELETE
+      value: "0"
+      # Whether to delete the session directories after they have been uploaded or not",
+    - name: XINGEST_LOGGERS
+      value: stream,info,stdout;file,debug,/data/LOGS/xnat-ingest-sort.log
+      # <logtype> <loglevel> <location>",
+      # "Setup handles to capture logs that are generated"),
+    # - name: XINGEST_LOOP
+    #   value: "0"
+    # Run the staging process continuously every LOOP seconds",
+    - name: XINGEST_COPY_MODE
+      value: hardlink_or_copy
+    - name: XINGEST_DEIDENTIFY
+      value: "0"
+    - name: XINGEST_SPACES_TO_UNDERSCORES
+      value: "0"
+    - name: XINGEST_PROJECT
+      value: StudyDescription
+    - name: XINGEST_SUBJECT
+      value: PatientName
+    - name: XINGEST_VISIT
+      value: PatientID
+    - name: XINGEST_SESSION
+      value: StudyInstanceUID
+    envFrom:
+    - configMapRef:
+        name: proxy-config
+    command:
+    - bash
+    - -c
+    - |
+      set -x
+      mkdir -p /data/cima-export/test /data/staging/sorted /data/LOGS
+      sleep infinity
+      # xnat-ingest sort-cli /data/cima-export /data/staging/sorted
+    volumeMounts:
+    - name: storage
+      mountPath: /data
+    - name: orthanc-storage
+      mountPath: /orthanc
+  volumes:
+  - name: storage
+    persistentVolumeClaim:
+      claimName: ais-edge
+  - name: orthanc-storage
+    persistentVolumeClaim:
+      claimName: orthanc

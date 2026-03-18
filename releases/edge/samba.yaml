@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samba
+  namespace: ais-edge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: samba
+  template:
+    metadata:
+      labels:
+        app: samba
+    spec:
+      containers:
+      - name: samba
+        image: dperson/samba
+        env:
+        - name: SAMBA_USER
+          valueFrom:
+            secretKeyRef:
+              name: samba-credentials
+              key: username
+        - name: SAMBA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: samba-credentials
+              key: password
+        args:
+          - -u
+          - "$(SAMBA_USER);$(SAMBA_PASSWORD)"
+          - -s
+          - "cima-x;/data;yes;no;no;$(SAMBA_USER)"
+        securityContext:
+          capabilities:
+            add:
+              - NET_BIND_SERVICE
+        ports:
+        - containerPort: 445
+          hostPort: 445
+          protocol: TCP
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: ais-edge
