@@ -6,12 +6,12 @@ metadata:
 spec:
   containers:
   - name: xnat-ingest-sort
-    image: ghcr.io/australian-imaging-service/xnat-ingest:0.8.3
-    imagePullPolicy: IfNotPresent
+    image: ghcr.io/australian-imaging-service/xnat-ingest:latest
+    imagePullPolicy: Always
     env:
     - name: XINGEST_DATATYPES
       value: medimage/dicom-series
-      # add k-space and msi(?) MIME types for Cima X
+      # add k-space and mrs(?) MIME types for Cima X
     - name: XINGEST_DELETE
       value: "0"
       # Whether to delete the session directories after they have been uploaded or not",
@@ -50,12 +50,7 @@ spec:
     volumeMounts:
     - name: storage
       mountPath: /data
-    - name: orthanc-storage
-      mountPath: /orthanc
   volumes:
   - name: storage
     persistentVolumeClaim:
       claimName: ais-edge
-  - name: orthanc-storage
-    persistentVolumeClaim:
-      claimName: orthanc

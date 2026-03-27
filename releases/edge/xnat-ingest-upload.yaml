@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: upload
+  namespace: ais-edge
+spec:
+  containers:
+  - name: xnat-ingest-upload
+    image: ghcr.io/australian-imaging-service/xnat-ingest:latest
+    imagePullPolicy: Always
+    env:
+    - name: XINGEST_ALWAYSINCLUDE
+      value: medimage/dicom-series
+    - name: XINGEST_DELETE
+      value: "0"
+    - name: XINGEST_LOGGERS
+      value: stream,debug,stdout;file,debug,/data/LOGS/xnat-ingest-upload.log
+    - name: XINGEST_VERIFY_SSL
+      value: "0"
+    - name: XINGEST_USE_CURL_JSESSION
+      value: "0"
+    - name: XINGEST_REQUIRE_MANIFEST
+      value: "1"
+    - name: XINGEST_LOOP
+      value: "-1"
+    - name: XINGEST_TEMPDIR
+      value: /data/tmp
+    - name: XINGEST_DEIDENTIFY
+      value: "0"
+    - name: XINGEST_SPACES_TO_UNDERSCORES
+      value: "0"
+    - name: XINGEST_PROJECT
+      value: StudyDescription
+    - name: XINGEST_SUBJECT
+      value: PatientName
+    - name: XINGEST_VISIT
+      value: PatientID
+    - name: XINGEST_SESSION
+      value: StudyInstanceUID
+    - name: XINGEST_SERVER
+      valueFrom:
+        secretKeyRef:
+          name: xnat-credentials
+          key: server
+    - name: XINGEST_USER
+      valueFrom:
+        secretKeyRef:
+          name: xnat-credentials
+          key: username
+    - name: XINGEST_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: xnat-credentials
+          key: password
+    envFrom:
+    - configMapRef:
+        name: proxy-config
+    command:
+    - bash
+    - -c
+    - |
+      set -x
+      sleep infinity
+      # xnat-ingest upload-cli /data/staging/sorted $XINGEST_SERVER \
+      #   --always-include medimage/vnd.siemens.syngo-mr.xa.twix \
+      #   --always-include medimage/vnd.siemens.syngo-mr.xa.rda \
+      #   --always-include medimage/vnd.siemens.syngo-mr.xa.puls
+    volumeMounts:
+    - name: storage
+      mountPath: /data
+  volumes:
+  - name: storage
+    persistentVolumeClaim:
+      claimName: ais-edge
