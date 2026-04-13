@@ -1,0 +1,14 @@
+# Empty ConfigMap required by all xnat-ingest pods.
+# Populate with proxy settings if the node requires an HTTP proxy to reach XNAT or S3.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxy-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cima-x.labels" . | nindent 4 }}
+data: {}
+  # Uncomment and set if an HTTP proxy is required:
+  # HTTP_PROXY: "http://proxy.example.org:3128"
+  # HTTPS_PROXY: "http://proxy.example.org:3128"
+  # NO_PROXY: "localhost,127.0.0.1"

@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samba
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cima-x.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  # required — hostPort 445 can only be held by one pod at a time
+  selector:
+    matchLabels:
+      app: samba
+  template:
+    metadata:
+      labels:
+        app: samba
+    spec:
+      containers:
+      - name: samba
+        image: {{ .Values.samba.image }}
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SAMBA_USER
+          valueFrom:
+            secretKeyRef:
+              name: samba-credentials  # created via command: kubectl create secret generic samba-credentials ...
+              key: username
+        - name: SAMBA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: samba-credentials
+              key: password
+        args:
+          - -u
+          - "$(SAMBA_USER);$(SAMBA_PASSWORD)"   # creates the Samba user with the credentials
+          - -s
+          - "{{ .Values.samba.shareName }};/data;yes;no;no;$(SAMBA_USER)"
+          # share definition: name={{ .Values.samba.shareName }}, path=/data, browsable=yes, readonly=no, guest=no, valid users=$(SAMBA_USER)
+        securityContext:
+          capabilities:
+            add:
+              - NET_BIND_SERVICE  # required to bind to privileged port 445
+        ports:
+        - containerPort: 445
+          hostPort: 445  # binds directly to port 445 on the VM — makes share reachable at <node-ip>:445
+          protocol: TCP
+        volumeMounts:
+        - name: storage
+          mountPath: /data  # exposes the full pipeline PVC over the SMB share
+        resources:
+          {{- toYaml .Values.samba.resources | nindent 10 }}
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: {{ include "cima-x.pvcName" . }}
