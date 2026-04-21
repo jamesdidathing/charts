@@ -22,6 +22,9 @@ orthanc:
     dicom: 30042                        # external port on VM for DICOM (scanner > Orthanc)
     http: 30842                         # external port on VM for HTTP (web UI + REST API)
   ingestTranscoding: "1.2.840.10008.1.2.1"  # decompress all incoming DICOMs to uncompressed
+  checkCallingAet: false  # set to true to only allow connections from modalities listed below
+  modalities: {}          # register known remote AE in my-values.yaml. Empty here as default
+  
   plugins:                                # plugins for viewer etc, can be altered
     - /usr/local/share/orthanc/plugins/libStoneWebViewer.so
     - /usr/local/share/orthanc/plugins/libOrthancDicomWeb.so

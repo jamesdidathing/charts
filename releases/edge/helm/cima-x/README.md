@@ -1,7 +1,3 @@
-# cima-x Helm Chart
-
-Deploys the CIMA-X imaging data pipeline on a Kubernetes cluster.
-
 ## Prerequisites
 
 - MicroK8s (or any Kubernetes cluster) with Helm v3 and kubectl installed
@@ -9,7 +5,7 @@ Deploys the CIMA-X imaging data pipeline on a Kubernetes cluster.
 
 ## Quick install
 
-The setup script handles everything — namespace, secrets, and chart install — interactively:
+The setup script handles everything — namespace, secrets, and chart install:
 
 ```bash
 bash helm/setup.sh
@@ -98,21 +94,21 @@ Data flows: Orthanc (or Samba) -> sort -> upload -> associate
 
 ```bash
 kubectl exec -it sort -n ais-edge -- \
-  xnat-ingest sort-cli /data/orthanc-storage /data/staging/sorted --recursive
+  xnat-ingest sort /data/orthanc-storage /data/staging/sorted --recursive
 ```
 
 **Upload** (push sorted sessions to XNAT):
 
 ```bash
 kubectl exec -it upload -n ais-edge -- \
-  xnat-ingest upload-cli /data/staging/sorted $XINGEST_SERVER
+  xnat-ingest upload /data/staging/sorted $XINGEST_SERVER
 ```
 
-**Associate** (attach raw Siemens files to XNAT scans — example for RDA):
+**Associate**:
 
 ```bash
 kubectl exec -it associate -n ais-edge -- \
-  xnat-ingest associate-cli /data/cima-export /data/staging/sorted \
+  xnat-ingest associate /data/cima-export /data/staging/sorted \
     --associated-files 'medimage/vnd.siemens.syngo-mr.xa.rda' \
       '{PatientName}/**/*.rda' \
       '.*\.(?P<id>\d+)\.\d+\.\d+\.(?P<resource>[^.]+)'

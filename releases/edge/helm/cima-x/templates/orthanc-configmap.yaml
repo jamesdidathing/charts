@@ -14,6 +14,16 @@ data:
       "HttpPort": {{ .Values.orthanc.httpPort }},
       "RemoteAccessAllowed": true,
       "AuthenticationEnabled": true,
+      "DicomCheckCallingAet": {{ .Values.orthanc.checkCallingAet }},
+      "DicomModalities": {
+        {{- range $name, $m := .Values.orthanc.modalities }}
+        {{ $name | quote }}: {
+          "AET": {{ $m.aet | quote }},
+          "Host": {{ $m.host | quote }},
+          "Port": {{ $m.port }}
+        },
+        {{- end }}
+      },
       "Plugins": {{ .Values.orthanc.plugins | toJson }},
       "IngestTranscoding": {{ .Values.orthanc.ingestTranscoding | quote }}
     }

@@ -22,6 +22,16 @@ orthanc:
     dicom: 30042   # scanner sends DICOM here
     http:  30842   # Orthanc web UI and REST API
 
+  # Set to true to only allow connections from scanners listed in modalities below.
+  # checkCallingAet: true
+
+  # Register known scanners. Required if checkCallingAet is true. (default is false)
+  # modalities:
+  #   scanner-name:
+  #     aet: SCANNER_AET
+  #     host: 192.168.1.10
+  #     port: 4242
+
 # ── Samba ─────────────────────────────────────────────────────────────────────
 
 samba:
